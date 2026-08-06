@@ -4,8 +4,9 @@
 
 import { S, boardWidth, boardHeight } from "./state.js";
 import { stitchSymbolSVG, letterAt } from "./symbol.js";
+import { typefaceEmbedCss } from "./typeface.js";
 
-export function buildCleanSVG() {
+export async function buildCleanSVG() {
   const W = boardWidth();
   const H = boardHeight();
   const {
@@ -41,16 +42,21 @@ export function buildCleanSVG() {
     }
   }
 
+  const fontCss = symbol === "text" ? await typefaceEmbedCss() : "";
+  const style = fontCss
+    ? `  <defs><style type="text/css"><![CDATA[\n${fontCss}\n]]></style></defs>\n`
+    : "";
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <rect width="${W}" height="${H}" fill="#0a0a0a"/>
+${style}  <rect width="${W}" height="${H}" fill="#0a0a0a"/>
   <g id="stitches">
 ${stitches}  </g>
 </svg>`;
 }
 
-export function downloadSVG() {
-  const svg = buildCleanSVG();
+export async function downloadSVG() {
+  const svg = await buildCleanSVG();
   const blob = new Blob([svg], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -60,8 +66,8 @@ export function downloadSVG() {
   URL.revokeObjectURL(url);
 }
 
-export function downloadPNG() {
-  const svg = buildCleanSVG();
+export async function downloadPNG() {
+  const svg = await buildCleanSVG();
   const W = boardWidth();
   const H = boardHeight();
   const blob = new Blob([svg], { type: "image/svg+xml" });
@@ -85,6 +91,9 @@ export function downloadPNG() {
       a.click();
       URL.revokeObjectURL(u);
     }, "image/png");
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
   };
   img.src = url;
 }

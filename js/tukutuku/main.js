@@ -17,6 +17,12 @@ import {
 } from "./motion.js";
 import { downloadSVG, downloadPNG } from "./export.js";
 import { parseCustomSvg } from "./symbol.js";
+import {
+  loadTypefaceFile,
+  resetTypeface,
+  prefetchDefaultTypeface,
+  DEFAULT_TYPEFACE_NAME,
+} from "./typeface.js";
 
 const svg = document.getElementById("board");
 const frame = document.getElementById("frame");
@@ -150,6 +156,14 @@ function syncSymbolUI() {
   if (name) {
     name.textContent = S.customSvg?.name || "No file yet";
   }
+  const typefaceName = $("typefaceName");
+  if (typefaceName) {
+    typefaceName.textContent = S.typefaceName || DEFAULT_TYPEFACE_NAME;
+  }
+  const typefaceReset = $("typefaceReset");
+  if (typefaceReset) {
+    typefaceReset.hidden = S.typefaceName === DEFAULT_TYPEFACE_NAME;
+  }
   const rot = $("symbolRotation");
   const rotN = $("symbolRotationN");
   if (rot) rot.value = String(S.symbolRotation);
@@ -157,6 +171,10 @@ function syncSymbolUI() {
   const wordField = $("symbolWordField");
   if (wordField) {
     wordField.hidden = S.symbol !== "text";
+  }
+  const typefaceField = $("typefaceField");
+  if (typefaceField) {
+    typefaceField.hidden = S.symbol !== "text";
   }
   const uploadField = $("symbolUploadField");
   if (uploadField) {
@@ -259,6 +277,27 @@ on("symbolFile", "change", async (e) => {
   }
 });
 
+on("typefaceFile", "change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    await loadTypefaceFile(file);
+    if (S.symbol !== "text") S.symbol = "text";
+    syncSymbolUI();
+    rebuild();
+  } catch {
+    if ($("typefaceName")) $("typefaceName").textContent = "Could not load font";
+  }
+});
+
+on("typefaceReset", "click", () => {
+  resetTypeface();
+  const input = $("typefaceFile");
+  if (input) input.value = "";
+  syncSymbolUI();
+  rebuild();
+});
+
 on("randomisePattern", "click", () => {
   const next = randomisePattern(S.rows, S.cols);
   S.preset = "random";
@@ -340,6 +379,7 @@ if ($("cell")) $("cell").value = String(S.cell);
 if ($("cellN")) $("cellN").value = String(S.cell);
 syncColourUI();
 syncSymbolUI();
+prefetchDefaultTypeface();
 
 // Fit after layout, then watch for resize
 requestAnimationFrame(() => {

@@ -1,6 +1,8 @@
 /**
- * Stitch symbol geometry — X, circle, triangle, square, or custom SVG.
+ * Stitch symbol geometry — X, circle, triangle, square, text, or custom SVG.
  */
+
+import { typefaceCssStack } from "./typeface.js";
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -133,7 +135,7 @@ export function appendStitchSymbol(parent, opts) {
       y: cy,
       fill: hex,
       "font-size": fontSize,
-      "font-family": '"Die Grotesk A", -apple-system, BlinkMacSystemFont, sans-serif',
+      "font-family": typefaceCssStack(),
       "font-weight": "600",
       "text-anchor": "middle",
       "dominant-baseline": "central",
@@ -253,7 +255,8 @@ export function stitchSymbolSVG(opts) {
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    return `<g class="stitch-mark" transform="${rot}"><text x="${cx}" y="${cy}" fill="${hex}" font-size="${fontSize}" font-family="Die Grotesk A, -apple-system, BlinkMacSystemFont, sans-serif" font-weight="600" text-anchor="middle" dominant-baseline="central">${esc}</text></g>`;
+    const fam = typefaceCssStack().replace(/"/g, "'");
+    return `<g class="stitch-mark" transform="${rot}"><text x="${cx}" y="${cy}" fill="${hex}" font-size="${fontSize}" font-family="${fam}" font-weight="600" text-anchor="middle" dominant-baseline="central">${esc}</text></g>`;
   }
   if (kind === "circle") {
     const r = size / 2 - pad;

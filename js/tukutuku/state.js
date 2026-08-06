@@ -23,6 +23,13 @@ export const S = {
   symbolRotation: 0,
   /** Word tiled across cells when symbol is text */
   symbolWord: "RONGO",
+  /** Typeface for text stitches — Die Grotesk by default */
+  typefaceName: "Die Grotesk A",
+  typefaceFamily: "Die Grotesk A",
+  /** @type {string|null} data URI for custom / export embed */
+  typefaceDataUri: null,
+  /** @type {string|null} woff2 | woff | opentype | truetype */
+  typefaceFormat: null,
   /** @type {{ markup: string, viewBox: { x: number, y: number, w: number, h: number }, name: string } | null} */
   customSvg: null,
   preset: "kaokao",
