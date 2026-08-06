@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tuku Max</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/tukutuku.css" />
+</head>
+<body>
+  <div class="lab">
+    <aside class="panel">
+      <header class="panel__brand">
+        <h1 class="panel__title">Tuku Max</h1>
+      </header>
+
+      <section class="control-block">
+        <h2>Grid</h2>
+        <div class="dual">
+          <span class="dual__label">Width</span>
+          <input type="range" id="boardW" min="40" max="100" value="100" />
+          <input type="number" id="boardWN" min="40" max="100" value="100" />
+        </div>
+        <div class="dual">
+          <span class="dual__label">Height</span>
+          <input type="range" id="boardH" min="40" max="100" value="100" />
+          <input type="number" id="boardHN" min="40" max="100" value="100" />
+        </div>
+        <div class="dual">
+          <span class="dual__label">Cell</span>
+          <input type="range" id="cell" min="7" max="38" value="14" />
+          <input type="number" id="cellN" min="7" max="38" value="14" />
+        </div>
+        <div class="dual">
+          <span class="dual__label">Gap</span>
+          <input type="range" id="gap" min="0" max="6" step="0.5" value="1.5" />
+          <input type="number" id="gapN" min="0" max="6" step="0.5" value="1.5" />
+        </div>
+        <div class="dual">
+          <span class="dual__label">Stroke</span>
+          <input type="range" id="stroke" min="0.8" max="4" step="0.1" value="1.6" />
+          <input type="number" id="strokeN" min="0.8" max="4" step="0.1" value="1.6" />
+        </div>
+        <p class="guide" id="gridHint">24 × 48</p>
+      </section>
+
+      <section class="control-block">
+        <h2>Pattern</h2>
+        <label class="field">
+          <span>Preset</span>
+          <select id="preset">
+            <option value="kaokao">Kaokao</option>
+            <option value="poutama">Poutama</option>
+            <option value="doublePoutama">Double Poutama</option>
+            <option value="patiki">Pātiki</option>
+            <option value="largePatiki">Large Pātiki</option>
+            <option value="niho">Niho Taniwha</option>
+            <option value="full">Full grid</option>
+            <option value="empty">Empty</option>
+          </select>
+        </label>
+        <button type="button" class="btn btn--section" id="randomisePattern">Randomise</button>
+      </section>
+
+      <section class="control-block">
+        <h2>Symbol</h2>
+        <label class="field">
+          <span>Shape</span>
+          <select id="symbol">
+            <option value="x">X</option>
+            <option value="circle">Circle</option>
+            <option value="triangle">Triangle</option>
+            <option value="square">Square</option>
+            <option value="text">Text</option>
+            <option value="custom">Custom SVG</option>
+          </select>
+        </label>
+        <label class="field" id="symbolWordField">
+          <span>Word</span>
+          <input type="text" id="symbolWord" value="RONGO" maxlength="48" spellcheck="false" />
+        </label>
+        <label class="field field--file" id="symbolUploadField">
+          <span>Upload SVG</span>
+          <input type="file" id="symbolFile" accept=".svg,image/svg+xml" />
+          <span class="guide" id="symbolFileName">No file yet</span>
+        </label>
+        <div class="dual">
+          <span class="dual__label">Rotate</span>
+          <input type="range" id="symbolRotation" min="0" max="360" step="1" value="0" />
+          <input type="number" id="symbolRotationN" min="0" max="360" step="1" value="0" />
+        </div>
+      </section>
+
+      <section class="control-block">
+        <h2>Colour</h2>
+        <label class="field">
+          <span>Treatment</span>
+          <select id="colourMode">
+            <option value="solid">Solid</option>
+            <option value="mumu">Mumu</option>
+            <option value="purapura">Purapura Whetū</option>
+            <optgroup label="Geometric">
+              <option value="geo:stripes-h">Horizontal stripes</option>
+              <option value="geo:stripes-v">Vertical stripes</option>
+              <option value="geo:diag">Diagonal</option>
+              <option value="geo:diag-alt">Diagonal alt</option>
+              <option value="geo:rings">Rings</option>
+              <option value="geo:diamonds">Diamonds</option>
+              <option value="geo:blocks">Blocks</option>
+              <option value="geo:waves">Waves</option>
+              <option value="geo:spiral">Spiral</option>
+              <option value="geo:chevrons">Chevrons</option>
+              <option value="geo:grid">Grid</option>
+              <option value="geo:noise">Noise</option>
+            </optgroup>
+          </select>
+        </label>
+        <p class="guide" id="colourHint" hidden></p>
+        <div class="colour-pair">
+          <label class="field">
+            <span>A</span>
+            <input type="color" id="colourA" value="#f5f0e6" />
+          </label>
+          <label class="field">
+            <span>B</span>
+            <input type="color" id="colourB" value="#a52a2a" />
+          </label>
+        </div>
+        <button type="button" class="btn btn--section" id="randomiseColour">Randomise</button>
+      </section>
+
+      <section class="control-block">
+        <h2>Motion</h2>
+        <label class="field">
+          <span>Pattern</span>
+          <select id="motion">
+            <option value="none">None</option>
+            <option value="pulse">Pulse</option>
+            <option value="shimmer">Shimmer</option>
+            <option value="wave">Wave</option>
+            <option value="ripple">Ripple</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Colour</span>
+          <select id="colourMotion">
+            <option value="none">None</option>
+            <option value="scroll">Scroll →</option>
+            <option value="scroll-v">Scroll ↓</option>
+            <option value="drift">Drift</option>
+            <option value="sweep">Sweep</option>
+            <option value="breathe">Breathe</option>
+            <option value="tide">Tide</option>
+            <option value="flicker">Flicker</option>
+          </select>
+        </label>
+        <div class="dual">
+          <span class="dual__label">Speed</span>
+          <input type="range" id="speed" min="0.2" max="3" step="0.1" value="1" />
+          <input type="number" id="speedN" min="0.2" max="3" step="0.1" value="1" />
+        </div>
+      </section>
+
+      <section class="control-block control-block--actions">
+        <button type="button" class="btn" id="exportSvg">Export SVG</button>
+        <button type="button" class="btn btn--ghost" id="exportPng">Export PNG</button>
+      </section>
+    </aside>
+
+    <main class="stage stage--tukutuku">
+      <div class="stage__frame" id="frame">
+        <svg id="board" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tuku Max board"></svg>
+      </div>
+      <p class="stage__meta" id="meta">24 × 48</p>
+    </main>
+  </div>
+
+  <script type="module" src="js/tukutuku/main.js?v=11"></script>
+</body>
+</html>
