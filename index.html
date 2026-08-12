@@ -181,6 +181,13 @@
     </main>
   </div>
 
-  <script type="module" src="js/tukutuku/main.js?v=12"></script>
+  <script>
+    // ES modules are blocked on file:// in Chrome/Safari/Firefox — board never builds.
+    if (location.protocol === "file:") {
+      document.getElementById("meta").textContent =
+        "Open via a local server (e.g. http://127.0.0.1:8080) — file:// blocks the app scripts.";
+    }
+  </script>
+  <script type="module" src="js/tukutuku/main.js?v=13"></script>
 </body>
 </html>
