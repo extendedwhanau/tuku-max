@@ -3,7 +3,7 @@
  * Kaokao, poutama, double, pātiki, large pātiki, niho with clean parameters.
  */
 
-import { generatePattern, isPatikiDiamond } from "./patterns.js";
+import { generatePattern, isPatikiStitch, isPatikiOffsetStitch } from "./patterns.js";
 
 function rng(seed) {
   let s = seed % 2147483647;
@@ -113,19 +113,56 @@ function genDouble(rows, cols, rand) {
   return g;
 }
 
-/** Small repeating pātiki with centre triangles */
-function genPatiki(rows, cols, rand) {
+/** Ring rhythms: gap, stitch, gap, stitch… widths, starting at the hollow centre. */
+const PATIKI_RHYTHMS = [
+  [3, 3],
+  [2, 2],
+  [3, 3, 3, 1],
+  [1, 3, 1, 2, 1, 1],
+  [2, 3, 2, 1],
+  [3, 3, 1, 1],
+  [1, 1, 2, 3],
+  [2, 3, 1, 1, 1, 1],
+];
+
+function randomRhythm(rand) {
+  if (rand() < 0.5) return pick(rand, PATIKI_RHYTHMS);
+  const bands = 1 + Math.floor(rand() * 3);
+  const rhythm = [1 + Math.floor(rand() * 3)];
+  for (let i = 0; i < bands; i++) {
+    rhythm.push(1 + Math.floor(rand() * 3), 1 + Math.floor(rand() * 3));
+  }
+  rhythm.pop();
+  rhythm.push(1 + Math.floor(rand() * 3));
+  return rhythm;
+}
+
+/** Stitch widths only, e.g. "3·1" — what reads on the board. */
+function rhythmLabel(rhythm) {
+  return rhythm.filter((_, i) => i % 2 === 1).join("·");
+}
+
+function genRhythmDiamonds(rows, cols, rand, isStitch, name) {
   const g = empty(rows, cols);
-  const size = 9 + Math.floor(rand() * 3);
-  const period = size * 2;
+  const rhythm = randomRhythm(rand);
+  const midR = Math.floor((rows - 1) / 2);
+  const midC = Math.floor((cols - 1) / 2);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const pr = ((r % period) - size + period) % period - size;
-      const pc = ((c % period) - size + period) % period - size;
-      if (isPatikiDiamond(pr, pc, size)) set(g, r, c);
+      if (isStitch(r - midR, c - midC, rhythm)) set(g, r, c);
     }
   }
-  return g;
+  return { mask: g, label: `${name} ${rhythmLabel(rhythm)}` };
+}
+
+/** Pātiki — centred diamond repeating out in rhythm rings */
+function genPatiki(rows, cols, rand) {
+  return genRhythmDiamonds(rows, cols, rand, isPatikiStitch, "Pātiki");
+}
+
+/** Pātiki Offset — staggered diamonds in rhythm rings */
+function genPatikiOffset(rows, cols, rand) {
+  return genRhythmDiamonds(rows, cols, rand, isPatikiOffsetStitch, "Pātiki Offset");
 }
 
 /** Large concentric pātiki — empty centre, 1-on / 2-off diamond rings */
@@ -180,7 +217,8 @@ const FORMS = [
   { id: "kaokao", label: "Kaokao", fn: genKaokao },
   { id: "poutama", label: "Poutama", fn: genPoutama },
   { id: "doublePoutama", label: "Double Poutama", fn: genDouble },
-  { id: "patiki", label: "Pātiki", fn: genPatiki },
+  { id: "patiki", label: "Pātiki", fn: genPatiki, weight: 2 },
+  { id: "patikiOffset", label: "Pātiki Offset", fn: genPatikiOffset, weight: 2 },
   { id: "largePatiki", label: "Large Pātiki", fn: genLargePatiki },
   { id: "niho", label: "Niho Taniwha", fn: genNiho },
 ];
@@ -190,7 +228,7 @@ const FORMS = [
  */
 export function randomisePattern(rows, cols, seed = Math.floor(Math.random() * 1e9)) {
   const rand = rng(seed);
-  const form = pick(rand, FORMS);
+  const form = pick(rand, FORMS.flatMap((f) => Array(f.weight ?? 1).fill(f)));
 
   // Mostly parametric variation; sometimes the exact refined preset
   let mask;
@@ -200,7 +238,9 @@ export function randomisePattern(rows, cols, seed = Math.floor(Math.random() * 1
     mask = generatePattern(form.id, rows, cols);
   } else {
     id = form.id + "-var";
-    mask = form.fn(rows, cols, rand);
+    const out = form.fn(rows, cols, rand);
+    mask = out.mask ?? out;
+    if (out.label) label = out.label;
   }
 
   mask = mask.map((row) => row.map((v) => (v == null ? null : 0)));

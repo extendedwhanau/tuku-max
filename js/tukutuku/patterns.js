@@ -118,43 +118,82 @@ function doublePoutama(rows, cols) {
 }
 
 /**
- * One pātiki diamond in local coords (pr, pc) relative to centre.
- * Classic tukutuku flounder:
- *  - double diamond rim
- *  - single centre stitch with a clear moat
- *  - four triangular lobes at N/S/E/W, inset from the rim,
- *    tips toward the corners (1·3·5·7), bases facing the moat
+ * Pātiki stitch at offset (dr, dc) from the pattern centre.
+ * Concentric diamond rings radiate from a hollow centre following the rhythm.
+ * Columns fold back every two rhythm repeats, so the diamonds repeat sideways
+ * and the rings of neighbouring diamonds meet as a lattice.
  */
-export function isPatikiDiamond(pr, pc, size) {
-  const d = Math.abs(pr) + Math.abs(pc);
-  if (d > size) return false;
+export function isPatikiStitch(dr, dc, rhythm = PATIKI_RHYTHM) {
+  const fold = rhythmPeriod(rhythm) * 2;
+  const u = ((dc % (fold * 2)) + fold * 2) % (fold * 2);
+  const d = Math.min(u, fold * 2 - u) + Math.abs(dr);
+  return ringOn(d, rhythm);
+}
 
-  if (pr === 0 && pc === 0) return true;
-  if (d === size || d === size - 1) return true;
+/** Classic pātiki rhythm — 3 gap, 3 stitch. */
+export const PATIKI_RHYTHM = [3, 3];
 
-  // Inset tips so lobes sit inside the rim, not merged into it
-  const tip = size - 3;
-  // Fixed depth keeps the four triangles readable as separate forms
-  const depth = Math.min(4, Math.max(3, tip - 2));
-  const maxI = depth - 1;
+function rhythmPeriod(rhythm) {
+  return rhythm.reduce((a, b) => a + b, 0);
+}
 
-  if (pr >= -tip && pr <= -tip + maxI && Math.abs(pc) <= pr - (-tip)) return true;
-  if (pr <= tip && pr >= tip - maxI && Math.abs(pc) <= tip - pr) return true;
-  if (pc >= -tip && pc <= -tip + maxI && Math.abs(pr) <= pc - (-tip)) return true;
-  if (pc <= tip && pc >= tip - maxI && Math.abs(pr) <= tip - pc) return true;
+/**
+ * Whether ring distance d is stitched. Rhythm alternates gap, stitch, gap,
+ * stitch… widths, starting with the gap at the hollow centre, and repeats.
+ */
+function ringOn(d, rhythm) {
+  let k = d % rhythmPeriod(rhythm);
+  for (let i = 0; i < rhythm.length; i++) {
+    if (k < rhythm[i]) return i % 2 === 1;
+    k -= rhythm[i];
+  }
   return false;
 }
 
-/** Pātiki — repeating diamonds with centre triangles */
-function patiki(rows, cols) {
+/**
+ * Pātiki Offset stitch at (dr, dc) from a diamond centre.
+ * Diamonds sit on a staggered lattice — each row of diamonds is shifted
+ * half a step — and every stitch takes its rings from the nearest centre.
+ */
+export function isPatikiOffsetStitch(dr, dc, rhythm = PATIKI_RHYTHM) {
+  const period = rhythmPeriod(rhythm);
+  const stepC = period * 4 + 1;
+  const stepR = period * 2 + 2;
+  const shift = period * 2 + 1;
+  const k0 = Math.round(dr / stepR);
+  let d = Infinity;
+  for (let k = k0 - 1; k <= k0 + 1; k++) {
+    const offC = Math.abs(k) % 2 === 1 ? shift : 0;
+    const j0 = Math.round((dc - offC) / stepC);
+    for (let j = j0 - 1; j <= j0 + 1; j++) {
+      const dist = Math.abs(dr - k * stepR) + Math.abs(dc - offC - j * stepC);
+      if (dist < d) d = dist;
+    }
+  }
+  return ringOn(d, rhythm);
+}
+
+/** Pātiki Offset — staggered diamonds, rings meeting between them */
+function patikiOffset(rows, cols) {
   const g = empty(rows, cols);
-  const size = Math.max(9, Math.round(Math.min(rows, cols) / 3));
-  const period = size * 2;
+  const midR = Math.floor((rows - 1) / 2);
+  const midC = Math.floor((cols - 1) / 2);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const pr = ((r % period) - size + period) % period - size;
-      const pc = ((c % period) - size + period) % period - size;
-      if (isPatikiDiamond(pr, pc, size)) set(g, r, c, 0);
+      if (isPatikiOffsetStitch(r - midR, c - midC)) set(g, r, c, 0);
+    }
+  }
+  return g;
+}
+
+/** Pātiki — diamond centred on the board, repeating out in rings */
+function patiki(rows, cols) {
+  const g = empty(rows, cols);
+  const midR = Math.floor((rows - 1) / 2);
+  const midC = Math.floor((cols - 1) / 2);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (isPatikiStitch(r - midR, c - midC)) set(g, r, c, 0);
     }
   }
   return g;
@@ -234,6 +273,7 @@ const GENERATORS = {
   poutama,
   doublePoutama,
   patiki,
+  patikiOffset,
   largePatiki,
   niho,
   full,
