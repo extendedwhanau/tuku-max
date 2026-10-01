@@ -2,7 +2,7 @@
  * Stitch symbol geometry — X, circle, triangle, square, text, or custom SVG.
  */
 
-import { typefaceCssStack } from "./typeface.js";
+import { typefaceCssStack, typefaceWeight } from "./typeface.js";
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -136,7 +136,7 @@ export function appendStitchSymbol(parent, opts) {
       fill: hex,
       "font-size": fontSize,
       "font-family": typefaceCssStack(),
-      "font-weight": "600",
+      "font-weight": typefaceWeight(),
       "text-anchor": "middle",
       "dominant-baseline": "central",
     });
@@ -256,7 +256,7 @@ export function stitchSymbolSVG(opts) {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
     const fam = typefaceCssStack().replace(/"/g, "'");
-    return `<g class="stitch-mark" transform="${rot}"><text x="${cx}" y="${cy}" fill="${hex}" font-size="${fontSize}" font-family="${fam}" font-weight="600" text-anchor="middle" dominant-baseline="central">${esc}</text></g>`;
+    return `<g class="stitch-mark" transform="${rot}"><text x="${cx}" y="${cy}" fill="${hex}" font-size="${fontSize}" font-family="${fam}" font-weight="${typefaceWeight()}" text-anchor="middle" dominant-baseline="central">${esc}</text></g>`;
   }
   if (kind === "circle") {
     const r = size / 2 - pad;

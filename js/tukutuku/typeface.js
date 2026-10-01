@@ -65,6 +65,11 @@ export function typefaceCssStack() {
   return `"${S.typefaceFamily}", ${DEFAULT_TYPEFACE_CSS}`;
 }
 
+/** Weight for stitch text — custom uploads are often a single master. */
+export function typefaceWeight() {
+  return S.typefaceFamily === DEFAULT_TYPEFACE_FAMILY ? "600" : "400";
+}
+
 /** CSS @font-face block to embed in exported SVG (async). */
 export async function typefaceEmbedCss() {
   if (S.typefaceDataUri && S.typefaceFormat) {
@@ -112,10 +117,22 @@ export async function loadTypefaceFile(file) {
     customFace = null;
   }
 
-  const face = new FontFace(CUSTOM_FAMILY, buffer);
-  await face.load();
-  document.fonts.add(face);
-  customFace = face;
+  // Blob URL is more reliable across Safari than a raw ArrayBuffer source
+  const blob = new Blob([buffer], { type: mime });
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const face = new FontFace(CUSTOM_FAMILY, `url(${objectUrl})`, {
+      style: "normal",
+      weight: "400",
+      display: "block",
+    });
+    await face.load();
+    document.fonts.add(face);
+    await document.fonts.ready;
+    customFace = face;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 
   S.typefaceName = name;
   S.typefaceFamily = CUSTOM_FAMILY;
